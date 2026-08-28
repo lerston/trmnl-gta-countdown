@@ -38,7 +38,7 @@ number = '''<svg class="gta-number" xmlns="http://www.w3.org/2000/svg" viewBox="
 font_url = 'https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/Montserrat-ExtraBold.woff2'
 production_style = style.replace('data:font/woff2;base64,' + font, font_url)
 choices = '''{% if art_count > 0 %}
-<img class="gta-art image" src="{{ artworks[art_index] | escape }}" alt="">
+<img class="gta-art image image-dither" src="{{ artworks[art_index] | escape }}" alt="">
 {% else %}
 <p style="position:absolute;top:24px;left:24px;color:black;font:20px sans-serif">Add image HTTPS URLs to Static Data: artworks</p>
 {% endif %}'''
@@ -50,7 +50,7 @@ preview = '<!doctype html><meta charset="utf-8"><title>GTA VI — preview</title
 preview += '<style>body{margin:24px;background:#444;color:white;font:16px sans-serif} input{font:inherit;width:90px} .gta-frame{margin-top:16px}</style>'
 preview += '<label>Проверить число: <input id="days" type="number" min="0" max="999" value="83"></label>'
 preview += '<div class="gta-frame"><img class="gta-art" src="' + images[0] + '" alt="">' + number.replace('{{ days_left }}', '83') + '</div>'
-preview += '<p>Предпросмотр в оттенках серого; итоговый 2-bit рендер нужно проверить в TRMNL.</p><script>document.getElementById("days").addEventListener("input",e=>{document.querySelectorAll(".gta-number text").forEach(t=>t.textContent=Math.max(0,Math.min(999,Math.floor(Number(e.target.value)||0))))});</script>'
+preview += '<p>Предпросмотр в оттенках серого. Дизеринг выполняет сервер TRMNL; здесь он не показан.</p><script>document.getElementById("days").addEventListener("input",e=>{document.querySelectorAll(".gta-number text").forEach(t=>t.textContent=Math.max(0,Math.min(999,Math.floor(Number(e.target.value)||0))))});</script>'
 (ROOT / 'preview.html').write_text(preview, encoding='utf-8')
 
 def days_at(iso):
