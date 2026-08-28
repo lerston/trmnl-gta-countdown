@@ -54,7 +54,7 @@ style = '''<style>
 .gta-frame { position: relative; width: 800px; height: 480px; flex: none; padding: 0; margin: 0; overflow: hidden; background: white; }
 .gta-art { position: absolute; inset: 0; width: 800px; height: 480px; max-width: none; object-fit: cover; filter: grayscale(1); }
 .gta-number { position: absolute; inset: 0; width: 800px; height: 480px; overflow: hidden; }
-.gta-logo { position: absolute; left: 44px; top: 40px; width: 210px; height: auto; max-width: none; filter: drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white); }
+.gta-logo { position: absolute; left: 56px; top: 48px; width: 210px; height: auto; max-width: none; filter: drop-shadow(1px 0 0 white) drop-shadow(-1px 0 0 white) drop-shadow(0 1px 0 white) drop-shadow(0 -1px 0 white); }
 .gta-number text { font-family: GTA-Montserrat; font-size: 180px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: 0; stroke: black; stroke-width: 8px; stroke-linejoin: round; paint-order: stroke fill; }
 </style>
 '''.replace('FONT', font)
@@ -94,5 +94,23 @@ assert days_at('2026-11-19T00:00:00+03:00') == 0
 assert days_at('2026-11-20T00:00:00+03:00') == 0
 assert days_at('2026-08-28T20:59:59+00:00') == 83
 assert days_at('2026-08-28T21:00:00+00:00') == 82
+
+def art_at(iso, count):
+    if count == 0:
+        return None
+    day = int((datetime.fromisoformat(iso).timestamp() + 10800) // 86400)
+    value = day * 48271 % 2147483647
+    return (value * value % 2147483647) % count
+
+for count in (1, 2, 3, 4, 10):
+    early = art_at('2026-08-28T00:00:00+03:00', count)
+    late = art_at('2026-08-28T23:59:59+03:00', count)
+    assert early == late and 0 <= early < count
+    indices = [art_at(f'2026-09-{day:02d}T12:00:00+03:00', count) for day in range(1, 29)]
+    assert all(0 <= index < count for index in indices)
+    if count > 1:
+        assert len(set(indices)) > 1
+assert art_at('2026-08-28T12:00:00+03:00', 0) is None
+print('Rotation arithmetic checked for 0, 1, 2, 3, 4 and 10 artworks; real multi-art rendering still requires supplied assets.')
 print(f'Built template with {len(arts)} image(s). Six date boundary checks passed.')
 print(f'Template size: {(ROOT / "full.liquid").stat().st_size:,} bytes')
