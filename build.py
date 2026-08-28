@@ -79,9 +79,11 @@ assert 'base64' not in markup
 preview = '<!doctype html><meta charset="utf-8"><title>GTA VI — preview</title>' + style
 preview += '<style>body{margin:24px;background:#444;color:white;font:16px sans-serif} input{font:inherit;width:90px} .gta-frame{margin-top:16px}</style>'
 preview += '<label>Проверить число: <input id="days" type="number" min="0" max="999" value="83"></label>'
+preview += '<label> Фон: <select id="art-picker">' + ''.join(f'<option value="{i}">{p.stem}</option>' for i, p in enumerate(arts)) + '</select></label>'
 local_logo = logo.replace('https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/gta-vi-logo-mono.svg?v=2', 'data:image/svg+xml;base64,' + b64encode(logo_mono.encode()).decode())
 preview += '<div class="gta-frame"><img class="gta-art" src="' + images[0] + '" alt="">' + number.replace('{{ days_left }}', '83') + local_logo + '</div>'
 preview += '<p>Предпросмотр в оттенках серого. Дизеринг выполняет сервер TRMNL; здесь он не показан.</p><script>document.getElementById("days").addEventListener("input",e=>{document.querySelectorAll(".gta-number text").forEach(t=>t.textContent=Math.max(0,Math.min(999,Math.floor(Number(e.target.value)||0))))});</script>'
+preview += '<script>document.getElementById("art-picker").addEventListener("change",e=>{document.querySelector(".gta-art").src="assets/art-"+String(Number(e.target.value)+1).padStart(2,"0")+".png"});</script>'
 (ROOT / 'preview.html').write_text(preview, encoding='utf-8')
 
 def days_at(iso):
@@ -111,6 +113,9 @@ for count in (1, 2, 3, 4, 10):
     if count > 1:
         assert len(set(indices)) > 1
 assert art_at('2026-08-28T12:00:00+03:00', 0) is None
+for day in range(28, 32):
+    iso = f'2026-08-{day:02d}T12:00:00+03:00'
+    print(f'{iso[:10]}: art-{art_at(iso, len(arts))+1:02d}')
 print('Rotation arithmetic checked for 0, 1, 2, 3, 4 and 10 artworks; real multi-art rendering still requires supplied assets.')
 print(f'Built template with {len(arts)} image(s). Six date boundary checks passed.')
 print(f'Template size: {(ROOT / "full.liquid").stat().st_size:,} bytes')

@@ -5,10 +5,12 @@
 1. Strategy: Static. В Static Data вставьте содержимое `static-data.json`:
 
 ```json
-{"artworks":["https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/art-01.png"]}
+{"artworks":["https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/art-01.png","https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/art-02.png","https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/art-03.png","https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/art-04.png"]}
 ```
 
 Арт и шрифт размещены в этом публичном репозитории. Для нескольких артов загрузите новые PNG в `assets` и добавьте их прямые ссылки в массив через запятую. GitHub Pages и собственный сервер не нужны.
+
+Добавлены четыре исходных арта 1600×960: art-01 — пара на пляже, art-02 — заправка, art-03 — автомобиль, art-04 — причал. В локальном preview.html есть выбор фона для проверки композиции. Настоящий дизеринг проверяется на сервере TRMNL.
 
 2. Remove bleed margin: Yes. Dark Mode: No.
 3. Edit Markup → Full: полностью замените старый код содержимым full.liquid. Сохраните.
