@@ -7,7 +7,28 @@ import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
 logo_source = (ROOT / 'assets/gta-vi-logo-original.svg').read_text(encoding='utf-8')
+texture_ids = []
+for gradient in re.findall(r'<linearGradient\b.*?</linearGradient>', logo_source, re.S):
+    if '#FF4CB9' in gradient and '#2B60DA' in gradient:
+        texture_ids.append(re.search(r'id="([^"]+)"', gradient).group(1))
+assert len(texture_ids) == 2, 'Expected the two original VI interior gradients'
+# An ordered 1-bit pattern at one dot per final display pixel (logo width 210px).
+# Only the VI interiors receive this texture; lettering, borders and palms stay solid.
+bayer = ((0, 8, 2, 10), (12, 4, 14, 6), (3, 11, 1, 9), (15, 7, 13, 5))
+dot = 980 / 210
+dots = []
+for row in range(160):
+    fraction = row / 159
+    black_density = 0.78 - 0.98 * fraction if fraction < 0.5 else 0.29 + 0.58 * (fraction - 0.5)
+    for col in range(4):
+        if (bayer[row % 4][col] + 0.5) / 16 < black_density:
+            dots.append(f'M{col*dot:.4f},{row*dot:.4f}h{dot:.4f}v{dot:.4f}h-{dot:.4f}z')
+texture = (f'<defs><pattern id="gta-vi-dots" patternUnits="userSpaceOnUse" x="10" y="28.01" width="{4*dot:.4f}" height="{160*dot:.4f}">'
+           f'<rect width="100%" height="100%" fill="white"/><path fill="black" d="{"".join(dots)}"/></pattern></defs>')
 logo_mono = re.sub(r'stop-color:#[0-9A-Fa-f]{6}', 'stop-color:#000000', logo_source)
+for texture_id in texture_ids:
+    logo_mono = logo_mono.replace('fill:url(#' + texture_id + ')', 'fill:url(#gta-vi-dots)')
+logo_mono = logo_mono.replace('</svg>', texture + '</svg>')
 logo_mono = logo_mono.replace('#1D0030', '#000000').replace('#FF2B90', '#FFFFFF')
 ET.fromstring(logo_mono)
 (ROOT / 'assets/gta-vi-logo-mono.svg').write_text(logo_mono, encoding='utf-8')
@@ -50,7 +71,7 @@ choices = '''{% if art_count > 0 %}
 {% else %}
 <p style="position:absolute;top:24px;left:24px;color:black;font:20px sans-serif">Add image HTTPS URLs to Static Data: artworks</p>
 {% endif %}'''
-logo = '<img class="gta-logo image" src="https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/gta-vi-logo-mono.svg" alt="Grand Theft Auto VI">'
+logo = '<img class="gta-logo image" src="https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/gta-vi-logo-mono.svg?v=2" alt="Grand Theft Auto VI">'
 markup = logic + production_style + '<div class="gta-frame">\n' + choices + '\n' + number + '\n' + logo + '\n</div>'
 assert len(markup.encode('utf-8')) < 100_000, 'TRMNL Full markup must be less than 100 KB'
 assert 'base64' not in markup
@@ -58,7 +79,7 @@ assert 'base64' not in markup
 preview = '<!doctype html><meta charset="utf-8"><title>GTA VI — preview</title>' + style
 preview += '<style>body{margin:24px;background:#444;color:white;font:16px sans-serif} input{font:inherit;width:90px} .gta-frame{margin-top:16px}</style>'
 preview += '<label>Проверить число: <input id="days" type="number" min="0" max="999" value="83"></label>'
-local_logo = logo.replace('https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/gta-vi-logo-mono.svg', 'data:image/svg+xml;base64,' + b64encode(logo_mono.encode()).decode())
+local_logo = logo.replace('https://raw.githubusercontent.com/lerston/trmnl-gta-countdown/main/assets/gta-vi-logo-mono.svg?v=2', 'data:image/svg+xml;base64,' + b64encode(logo_mono.encode()).decode())
 preview += '<div class="gta-frame"><img class="gta-art" src="' + images[0] + '" alt="">' + number.replace('{{ days_left }}', '83') + local_logo + '</div>'
 preview += '<p>Предпросмотр в оттенках серого. Дизеринг выполняет сервер TRMNL; здесь он не показан.</p><script>document.getElementById("days").addEventListener("input",e=>{document.querySelectorAll(".gta-number text").forEach(t=>t.textContent=Math.max(0,Math.min(999,Math.floor(Number(e.target.value)||0))))});</script>'
 (ROOT / 'preview.html').write_text(preview, encoding='utf-8')
