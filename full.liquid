@@ -18,7 +18,7 @@
 </style>
 <div class="gta-frame">
 {% if art_count > 0 %}
-<img class="gta-art image" src="{{ artworks[art_index] | escape }}" alt="">
+<img class="gta-art image image-dither" src="{{ artworks[art_index] | escape }}" alt="">
 {% else %}
 <p style="position:absolute;top:24px;left:24px;color:black;font:20px sans-serif">Add image HTTPS URLs to Static Data: artworks</p>
 {% endif %}
