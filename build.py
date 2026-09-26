@@ -6,6 +6,14 @@ import re
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent
+
+
+def write_text_lf(path, content):
+    """Write generated text identically on Windows and Linux."""
+    with path.open('w', encoding='utf-8', newline='\n') as output:
+        output.write(content)
+
+
 logo_source = (ROOT / 'assets/gta-vi-logo-original.svg').read_text(encoding='utf-8')
 texture_ids = []
 for gradient in re.findall(r'<linearGradient\b.*?</linearGradient>', logo_source, re.S):
@@ -30,8 +38,9 @@ for texture_id in texture_ids:
     logo_mono = logo_mono.replace('fill:url(#' + texture_id + ')', 'fill:url(#gta-vi-dots)')
 logo_mono = logo_mono.replace('</svg>', texture + '</svg>')
 logo_mono = logo_mono.replace('#1D0030', '#000000').replace('#FF2B90', '#FFFFFF')
+logo_mono = '\n'.join(line.rstrip() for line in logo_mono.splitlines()) + '\n'
 ET.fromstring(logo_mono)
-(ROOT / 'assets/gta-vi-logo-mono.svg').write_text(logo_mono, encoding='utf-8')
+write_text_lf(ROOT / 'assets/gta-vi-logo-mono.svg', logo_mono)
 font = b64encode((ROOT / 'assets/Montserrat-ExtraBold.woff2').read_bytes()).decode()
 arts = sorted((ROOT / 'assets').glob('art-*.png'))
 assert arts, 'Add at least one art-*.png'
@@ -75,7 +84,7 @@ logo = '<img class="gta-logo image" src="https://raw.githubusercontent.com/lerst
 markup = logic + production_style + '<div class="gta-frame">\n' + choices + '\n' + number + '\n' + logo + '\n</div>'
 assert len(markup.encode('utf-8')) < 100_000, 'TRMNL Full markup must be less than 100 KB'
 assert 'base64' not in markup
-(ROOT / 'full.liquid').write_text(markup, encoding='utf-8')
+write_text_lf(ROOT / 'full.liquid', markup)
 preview = '<!doctype html><meta charset="utf-8"><title>GTA VI — preview</title>' + style
 preview += '<style>body{margin:24px;background:#444;color:white;font:16px sans-serif} input{font:inherit;width:90px} .gta-frame{margin-top:16px}</style>'
 preview += '<label>Проверить число: <input id="days" type="number" min="0" max="999" value="83"></label>'
@@ -84,7 +93,7 @@ local_logo = logo.replace('https://raw.githubusercontent.com/lerston/trmnl-gta-c
 preview += '<div class="gta-frame"><img class="gta-art" src="' + images[0] + '" alt="">' + number.replace('{{ days_left }}', '83') + local_logo + '</div>'
 preview += '<p>Предпросмотр в оттенках серого. Дизеринг выполняет сервер TRMNL; здесь он не показан.</p><script>document.getElementById("days").addEventListener("input",e=>{document.querySelectorAll(".gta-number text").forEach(t=>t.textContent=Math.max(0,Math.min(999,Math.floor(Number(e.target.value)||0))))});</script>'
 preview += '<script>document.getElementById("art-picker").addEventListener("change",e=>{document.querySelector(".gta-art").src="assets/art-"+String(Number(e.target.value)+1).padStart(2,"0")+".png"});</script>'
-(ROOT / 'preview.html').write_text(preview, encoding='utf-8')
+write_text_lf(ROOT / 'preview.html', preview)
 
 def days_at(iso):
     stamp = datetime.fromisoformat(iso).timestamp()
