@@ -50,7 +50,8 @@ logic = '''{% liquid
   assign moscow_seconds = 'now' | date: '%s' | plus: 10800
   assign day_number = moscow_seconds | divided_by: 86400
   assign days_left = TARGET_DAY | minus: day_number | at_least: 0
-  assign random_value = day_number | times: 48271 | modulo: 2147483647
+  assign random_value = moscow_seconds | modulo: 2147483647
+  assign random_value = random_value | times: 48271 | modulo: 2147483647
   assign random_value = random_value | times: random_value | modulo: 2147483647
   assign art_count = artworks | size
   if art_count > 0
@@ -109,15 +110,13 @@ assert days_at('2026-08-28T21:00:00+00:00') == 82
 def art_at(iso, count):
     if count == 0:
         return None
-    day = int((datetime.fromisoformat(iso).timestamp() + 10800) // 86400)
-    value = day * 48271 % 2147483647
+    moscow_seconds = int(datetime.fromisoformat(iso).timestamp()) + 10800
+    value = moscow_seconds % 2147483647
+    value = value * 48271 % 2147483647
     return (value * value % 2147483647) % count
 
 for count in (1, 2, 3, 4, 10):
-    early = art_at('2026-08-28T00:00:00+03:00', count)
-    late = art_at('2026-08-28T23:59:59+03:00', count)
-    assert early == late and 0 <= early < count
-    indices = [art_at(f'2026-09-{day:02d}T12:00:00+03:00', count) for day in range(1, 29)]
+    indices = [art_at(f'2026-09-01T{hour:02d}:00:00+03:00', count) for hour in range(24)]
     assert all(0 <= index < count for index in indices)
     if count > 1:
         assert len(set(indices)) > 1
@@ -125,6 +124,6 @@ assert art_at('2026-08-28T12:00:00+03:00', 0) is None
 for day in range(28, 32):
     iso = f'2026-08-{day:02d}T12:00:00+03:00'
     print(f'{iso[:10]}: art-{art_at(iso, len(arts))+1:02d}')
-print('Rotation arithmetic checked for 0, 1, 2, 3, 4 and 10 artworks; real multi-art rendering still requires supplied assets.')
+print('Per-render rotation checked for 0, 1, 2, 3, 4 and 10 artworks; repeated random choices remain possible.')
 print(f'Built template with {len(arts)} image(s). Six date boundary checks passed.')
 print(f'Template size: {(ROOT / "full.liquid").stat().st_size:,} bytes')
