@@ -2,7 +2,8 @@
   assign moscow_seconds = 'now' | date: '%s' | plus: 10800
   assign day_number = moscow_seconds | divided_by: 86400
   assign days_left = 20776 | minus: day_number | at_least: 0
-  assign random_value = day_number | times: 48271 | modulo: 2147483647
+  assign random_value = moscow_seconds | modulo: 2147483647
+  assign random_value = random_value | times: 48271 | modulo: 2147483647
   assign random_value = random_value | times: random_value | modulo: 2147483647
   assign art_count = artworks | size
   if art_count > 0
